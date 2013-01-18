@@ -2,9 +2,9 @@ require "her/model/base"
 require "her/model/http"
 require "her/model/orm"
 require "her/model/relationships"
-require "her/model/hooks"
 require "her/model/introspection"
 require "her/model/paths"
+require "active_model"
 
 module Her
   # This module is the main element of Her. After creating a Her::API object,
@@ -25,12 +25,19 @@ module Her
     include Her::Model::Introspection
     include Her::Model::Paths
     include Her::Model::Relationships
+    include ActiveModel::Validations
+    include ActiveModel::Conversion
+    include ActiveModel::Dirty
 
     # Class methods
     included do
       extend Her::Model::Base
       extend Her::Model::HTTP
-      extend Her::Model::Hooks
+      extend ActiveModel::Naming
+      extend ActiveModel::Translation
+
+      extend ActiveModel::Callbacks
+      define_model_callbacks :create, :update, :save, :find, :destroy
 
       # Define default settings
       root_element self.name.split("::").last.underscore

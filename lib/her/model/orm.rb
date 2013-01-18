@@ -3,7 +3,7 @@ module Her
     # This module adds ORM-like capabilities to the model
     module ORM
       extend ActiveSupport::Concern
-      attr_accessor :data, :metadata, :errors
+      attr_accessor :data, :metadata, :response_errors
       alias :attributes :data
       alias :attributes= :data=
 
@@ -11,7 +11,7 @@ module Her
       def initialize(params={})
         @data = {}
         @metadata = params.delete(:_metadata) || {}
-        @errors = params.delete(:_errors) || {}
+        @response_errors = params.delete(:_errors) || {}
 
         # Use setter methods first, then translate attributes of relationships
         # into relationship instances, then merge the parsed_data into @data.
@@ -25,7 +25,7 @@ module Her
       def self.initialize_collection(klass, parsed_data={})
         collection_data = parsed_data[:data].map do |item_data|
           resource = klass.new(klass.parse(item_data))
-          klass.wrap_in_hooks(resource, :find)
+          resource.run_callbacks :find
           resource
         end
         Her::Collection.new(collection_data, parsed_data[:metadata], parsed_data[:errors])
@@ -97,16 +97,6 @@ module Her
         !@data.include?(:id)
       end
 
-      # Return `true` if a resource does not contain errors
-      def valid?
-        @errors.empty?
-      end
-
-      # Return `true` if a resource contains errors
-      def invalid?
-        @errors.any?
-      end
-
       # Return `true` if the other object is also a Her::Model and has matching data
       def ==(other)
         other.is_a?(Her::Model) && @data == other.data
@@ -148,13 +138,13 @@ module Her
           method = :post
         end
 
-        self.class.wrap_in_hooks(resource, *hooks) do |resource, klass|
-          klass.request(params.merge(:_method => method, :_path => "#{request_path}")) do |parsed_data|
+        run_callbacks(*hooks) do
+          self.class.request(params.merge(:_method => method, :_path => "#{request_path}")) do |parsed_data|
             self.data = self.class.parse(parsed_data[:data]) if parsed_data[:data].any?
             self.metadata = parsed_data[:metadata]
-            self.errors = parsed_data[:errors]
+            self.response_errors = parsed_data[:errors]
 
-            return false if self.errors.any?
+            return false if self.response_errors.any?
           end
         end
 
@@ -169,11 +159,11 @@ module Her
       #   # Called via DELETE "/users/1"
       def destroy
         resource = self
-        self.class.wrap_in_hooks(resource, :destroy) do |resource, klass|
-          klass.request(:_method => :delete, :_path => "#{request_path}") do |parsed_data|
+        run_callbacks :destroy do
+          self.class.request(:_method => :delete, :_path => "#{request_path}") do |parsed_data|
             self.data = self.class.parse(parsed_data[:data])
             self.metadata = parsed_data[:metadata]
-            self.errors = parsed_data[:errors]
+            self.response_errors = parsed_data[:errors]
           end
         end
         self
@@ -226,7 +216,7 @@ module Her
             resource = nil
             request(params.merge(:_method => :get, :_path => "#{build_request_path(params.merge(:id => id))}")) do |parsed_data|
               resource = new(parse(parsed_data[:data]).merge :_metadata => parsed_data[:data], :_errors => parsed_data[:errors])
-              wrap_in_hooks(resource, :find)
+              resource.run_callbacks :find
             end
             resource
           end
@@ -255,14 +245,14 @@ module Her
         #   # Called via POST "/users/1"
         def create(params={})
           resource = new(params)
-          wrap_in_hooks(resource, :create, :save) do |resource, klass|
+          resource.run_callbacks :create, :save do
             params = resource.to_params
             request(params.merge(:_method => :post, :_path => "#{build_request_path(params)}")) do |parsed_data|
               data = parse(parsed_data[:data])
               resource.instance_eval do
                 @data = data
                 @metadata = parsed_data[:metadata]
-                @errors = parsed_data[:errors]
+                @response_errors = parsed_data[:errors]
               end
             end
           end
