@@ -1,10 +1,20 @@
-require "her/model/base"
-require "her/model/http"
-require "her/model/orm"
-require "her/model/relationships"
-require "her/model/hooks"
-require "her/model/introspection"
-require "her/model/paths"
+require 'her/model/base'
+require 'her/model/http'
+require 'her/model/orm/comparison_methods'
+require 'her/model/orm/create_methods'
+require 'her/model/orm/destroy_methods'
+require 'her/model/orm/error_methods'
+require 'her/model/orm/find_methods'
+require 'her/model/orm/persistance_methods'
+require 'her/model/orm/relation_mapper'
+require 'her/model/orm/save_methods'
+require 'her/model/orm/serialization_methods'
+require 'her/model/orm/update_methods'
+require 'her/model/orm'
+require 'her/model/relationships'
+require 'her/model/hooks'
+require 'her/model/introspection'
+require 'her/model/paths'
 
 module Her
   # This module is the main element of Her. After creating a Her::API object,
@@ -33,10 +43,9 @@ module Her
       extend Her::Model::Hooks
 
       # Define default settings
-      root_element self.name.split("::").last.underscore
-      base_path = root_element.pluralize
-      collection_path "#{base_path}"
-      resource_path "#{base_path}/:id"
+      root_element name.demodulize.underscore
+      collection_path root_element.pluralize
+      resource_path [collection_path, '/:id'].join
       uses_api Her::API.default_api
     end
 
