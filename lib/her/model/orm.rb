@@ -13,6 +13,7 @@ module Her
       include ComparisonMethods
       include PersistanceMethods
       include SerializationMethods
+      include FieldsDefinition
 
       attr_accessor :data, :metadata, :errors
       alias :attributes :data
@@ -20,7 +21,8 @@ module Her
 
       # Initialize a new object with data received from an HTTP request
       def initialize(params={})
-        @data = {}
+        fields = self.class.instance_variable_defined?(:@fields) ? self.class.instance_variable_get(:@fields) : []
+        @data = Hash[fields.map{ |field| [field, nil] }]
         @metadata = params.delete(:_metadata) || {}
         @errors = params.delete(:_errors) || {}
 
