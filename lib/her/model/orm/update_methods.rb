@@ -13,7 +13,7 @@ module Her
         #   # Called via PUT "/users/1"
         def update_attribute(attribute, value)
           send(attribute.to_s + '=', value)
-          save(false)
+          save
         end
 
         def update_attributes(attributes)

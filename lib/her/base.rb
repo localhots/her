@@ -1,6 +1,9 @@
 module Her
   class Base # In case you prefer inheritance over mixins
     include Model
+    include ActiveModel::Conversion if defined?(ActiveModel)
+    include ActiveModel::AttributeMethods if defined?(ActiveModel)
+    extend ActiveModel::Naming if defined?(ActiveModel)
 
     class << self
       def inherited(klass)

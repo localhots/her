@@ -12,7 +12,7 @@ module Her
           end
 
           def to_relation
-            Relation.new(self)
+            ::Her::Relation.new(self)
           end
         end
       end

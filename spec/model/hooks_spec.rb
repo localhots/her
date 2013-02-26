@@ -35,7 +35,7 @@ describe Her::Model::Hooks do
       it "does not handle “before find” method hooks" do
         expect {
           Foo::User.before_find :set_internal_id
-        }.should raise_error(NoMethodError)
+        }.to raise_error(NoMethodError)
       end
 
       it "handles “after save” method hooks" do
@@ -97,7 +97,7 @@ describe Her::Model::Hooks do
       it "does not handle “before find” block hooks" do
         expect {
           Foo::User.before_find :set_internal_id
-        }.should raise_error(NoMethodError)
+        }.to raise_error(NoMethodError)
       end
 
       it "handles “after save” block hooks" do

@@ -3,15 +3,16 @@ module Her
     # This module adds ORM-like capabilities to the model
     module ORM
       extend ActiveSupport::Concern
-      extend CreateMethods
-      extend DestroyMethods
-      extend FindMethods
-      extend SaveMethods
-      extend UpdateMethods
-      extend RelationMapper
-      extend ComparisonMethods
-      extend PersistanceMethods
-      extend SerializationMethods
+      include CreateMethods
+      include DestroyMethods
+      include FindMethods
+      include SaveMethods
+      include UpdateMethods
+      include RelationMapper
+      include ErrorMethods
+      include ComparisonMethods
+      include PersistanceMethods
+      include SerializationMethods
 
       attr_accessor :data, :metadata, :errors
       alias :attributes :data
@@ -38,7 +39,12 @@ module Her
           klass.wrap_in_hooks(resource, :find)
           resource
         end
-        Her::Collection.new(collection_data, parsed_data[:metadata], parsed_data[:errors])
+
+        collection_class = Her::Collection
+        if parsed_data[:metadata].is_a?(Hash) && parsed_data[:metadata].has_key?(:current_page)
+          collection_class = Her::PaginatedCollection
+        end
+        collection_class.new(collection_data, parsed_data[:metadata], parsed_data[:errors])
       end
 
       # Handles missing methods by routing them through @data

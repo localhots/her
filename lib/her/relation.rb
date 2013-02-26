@@ -37,8 +37,8 @@ module Her
       self
     end
 
-    def all
-      with_response do |data|
+    def all(params = {})
+      with_response(params) do |data|
         @model.new_collection(data)
       end
     end
@@ -67,15 +67,14 @@ module Her
 
   private
 
-    def with_response
-      params = {}
-      params[:vodka_special_where] = @conditions unless @conditions.empty?
-      params[:vodka_special_group] = @group_conditions unless @group_conditions.empty?
-      params[:vodka_special_order] = @order_conditions unless @order_conditions.empty?
-      params[:vodka_special_limit] = @limit_value unless @limit_value.nil?
-      params[:vodka_special_offset] = @offset_value unless @offset_value.nil?
-      params[:vodka_special_paginate] = 1 if @do_paginate
-      params[:vodka_special_count] = 1 if @do_count
+    def with_response(params = {})
+      params[:her_special_where] = @conditions unless @conditions.empty?
+      params[:her_special_group] = @group_conditions unless @group_conditions.empty?
+      params[:her_special_order] = @order_conditions unless @order_conditions.empty?
+      params[:her_special_limit] = @limit_value unless @limit_value.nil?
+      params[:her_special_offset] = @offset_value unless @offset_value.nil?
+      params[:her_special_paginate] = 1 if @do_paginate
+      params[:her_special_count] = 1 if @do_count
 
       @model.request(params.merge(_method: :get, _path: @model.build_request_path(params))) do |parsed_data|
         yield parsed_data if block_given?

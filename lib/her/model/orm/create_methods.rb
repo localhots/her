@@ -11,7 +11,9 @@ module Her
           #   @user = User.create({ fullname: "Tobias Fünke" })
           #   # Called via POST "/users/1"
           def create(params = {})
-            new(params).save
+            resource = new(params)
+            resource.save
+            resource
           end
 
           def create!(params = {})
