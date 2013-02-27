@@ -5,7 +5,7 @@ module Her
         extend ActiveSupport::Concern
 
         module ClassMethods
-          %w[ where group order limit offset all count first last paginate ].each do |name|
+          %w[ where group having order limit offset all count first last paginate ].each do |name|
             define_method(name) do |*args|
               to_relation.send(name, *args)
             end

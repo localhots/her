@@ -4,6 +4,7 @@ module Her
       @model = model
       @conditions = []
       @group_conditions = []
+      @having_conditions = []
       @order_conditions = []
       @limit_value = nil
       @offset_value = nil
@@ -19,6 +20,11 @@ module Her
 
     def group(*args)
       @group_conditions += args
+      self
+    end
+
+    def having(*args)
+      @having_conditions += args
       self
     end
 
@@ -68,9 +74,10 @@ module Her
   private
 
     def with_response(params = {})
-      params[:her_special_where] = @conditions unless @conditions.empty?
-      params[:her_special_group] = @group_conditions unless @group_conditions.empty?
-      params[:her_special_order] = @order_conditions unless @order_conditions.empty?
+      params[:her_special_where] = MultiJson.dump(@conditions) unless @conditions.empty?
+      params[:her_special_group] = MultiJson.dump(@group_conditions) unless @group_conditions.empty?
+      params[:her_special_having] = MultiJson.dump(@having_conditions) unless @having_conditions.empty?
+      params[:her_special_order] = MultiJson.dump(@order_conditions) unless @order_conditions.empty?
       params[:her_special_limit] = @limit_value unless @limit_value.nil?
       params[:her_special_offset] = @offset_value unless @offset_value.nil?
       params[:her_special_paginate] = 1 if @do_paginate
