@@ -67,6 +67,9 @@ module Her
     end
 
     def paginate(page = 1, per_page = 20)
+      page = page.to_i < 1 ? 1 : page.to_i
+      per_page = per_page.to_i < 1 ? 20 : per_page.to_i
+
       @do_paginate = true
       offset((page - 1) * per_page).limit(per_page)
     end

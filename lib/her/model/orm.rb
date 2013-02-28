@@ -30,7 +30,22 @@ module Her
         # into relationship instances, then merge the parsed_data into @data.
         unset_data = Her::Model::ORM.use_setter_methods(self, params)
         parsed_data = self.class.parse_relationships(unset_data)
-        @data.update(parsed_data)
+        @data.update(convert_types(parsed_data))
+      end
+
+      def convert_types(parsed_data)
+        parsed_data.each do |key, value|
+          "2013-01-26T09:29:39.358Z"
+          if value.is_a?(String)
+            m = value.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/)
+            next if m.nil?
+            if m[1].nil?
+              parsed_data[key] = Time.strptime(value, '%Y-%m-%dT%H:%M:%S%Z')
+            else
+              parsed_data[key] = Time.strptime(value, '%Y-%m-%dT%H:%M:%S.%L%Z')
+            end
+          end
+        end
       end
 
       # Initialize a collection of resources

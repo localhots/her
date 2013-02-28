@@ -21,12 +21,26 @@ module Her
       # Main request wrapper around Her::API. Used to make custom request to the API.
       # @private
       def request(attrs={})
+        initial_attrs = attrs.dup
+        started = Time.now.to_f
         parsed_data = her_api.request(attrs)
+        request_time = Time.now.to_f - started
+        log(initial_attrs, request_time)
+
         if block_given?
           yield parsed_data
         else
           parsed_data
         end
+      end
+
+      def log(attrs, time)
+        return unless defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger.respond_to?(:debug)
+
+        method = attrs.delete(:_method).to_s.upcase
+        path = attrs.delete(:_path)
+
+        Rails.logger.debug("* HER request: #{method} #{path} [#{time}s] #{attrs}")
       end
 
       # Make a GET request and return either a collection or a resource
